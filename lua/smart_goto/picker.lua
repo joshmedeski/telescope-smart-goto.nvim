@@ -4,6 +4,7 @@ local finders = require("telescope.finders")
 local harpoon = require("harpoon")
 local make_entry = require("telescope.make_entry")
 local pickers = require("telescope.pickers")
+local utils = require("telescope.utils")
 
 ---@class SmartGoToEntry
 ---@field filename string
@@ -92,23 +93,34 @@ local function smart_goto_finder(opts)
 		results = vim.tbl_deep_extend("force", get_buffer_results(opts), get_harpoon_results()),
 		entry_maker = function(entry)
 			-- TODO: pass line into smart icon function?
-			local line = entry.filename .. ":" .. entry.row .. ":" .. entry.col
 			local displayer = entry_display.create({
 				separator = " ",
 				items = {
 					{ width = 2 },
 					{ width = 5 },
-					{ width = 50 },
 					{ remaining = true },
 				},
 			})
 			local function get_icon(type)
 				if type == "harpoon" then
-					return "󰛢 "
+					return "󰛢"
 				elseif type == "buffer" then
-					return "󰕸 "
+					return "󰕸"
 				end
 			end
+
+			local function get_pretty_file_path(entry)
+				local hl_group, icon
+				local display = utils.transform_path(opts, entry.filename)
+				display, hl_group, icon = utils.transform_devicons(entry.filename, display, opts.disable_devicons)
+				if hl_group then
+					return display, { { { 0, #icon }, hl_group } }
+				else
+					return display
+				end
+			end
+
+			local line = get_pretty_file_path(entry)
 
 			local make_display = function()
 				return displayer({
@@ -130,7 +142,7 @@ local function smart_goto_finder(opts)
 	})
 end
 
-local function smart_goto_picker(opts)
+return function(opts)
 	opts = opts or {}
 	opts.entry_maker = opts.entry_maker or make_entry.gen_from_file(opts)
 
@@ -146,5 +158,3 @@ local function smart_goto_picker(opts)
 		})
 		:find()
 end
-
-smart_goto_picker()
