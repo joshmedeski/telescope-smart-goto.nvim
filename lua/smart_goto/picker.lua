@@ -64,14 +64,16 @@ local function get_buffer_results(opts)
 			col = 0,
 			index = bufnr,
 		}
-		vim.print(buffer_entry)
 
-		if opts.sort_lastused and (flag == "#" or flag == "%") then
-			local idx = ((buffers[1] ~= nil and buffers[1].flag == "%") and 2 or 1)
-			table.insert(buffers, idx, buffer_entry)
-		else
+		if buffer_entry.filename and buffer_entry.filename ~= "" then
 			table.insert(buffers, buffer_entry)
 		end
+		-- 	local idx = ((buffers[1] ~= nil and buffers[1].flag == "%") and 2 or 1)
+		-- if opts.sort_lastused and (flag == "#" or flag == "%") then
+		-- 	table.insert(buffers, idx, buffer_entry)
+		-- else
+		-- table.insert(buffers, buffer_entry)
+		-- end
 	end
 
 	if not opts.bufnr_width then
@@ -79,7 +81,6 @@ local function get_buffer_results(opts)
 		opts.bufnr_width = #tostring(max_bufnr)
 	end
 
-	-- vim.print(buffers)
 	return buffers
 end
 
@@ -93,9 +94,10 @@ local function smart_goto_finder(opts)
 			-- TODO: pass line into smart icon function?
 			local line = entry.filename .. ":" .. entry.row .. ":" .. entry.col
 			local displayer = entry_display.create({
-				separator = " - ",
+				separator = " ",
 				items = {
-					{ width = 3 },
+					{ width = 2 },
+					{ width = 5 },
 					{ width = 50 },
 					{ remaining = true },
 				},
@@ -110,7 +112,8 @@ local function smart_goto_finder(opts)
 
 			local make_display = function()
 				return displayer({
-					get_icon(entry.type) .. tostring(entry.index),
+					get_icon(entry.type),
+					tostring(entry.index),
 					line,
 				})
 			end
