@@ -87,10 +87,10 @@ end
 
 local function smart_goto_finder(opts)
 	opts = opts or {}
+	local results = vim.tbl_deep_extend("force", get_buffer_results(opts), get_harpoon_results())
 	return finders.new_table({
-		-- TODO: normalize and merge
 		---@return SmartGoToEntry[]
-		results = vim.tbl_deep_extend("force", get_buffer_results(opts), get_harpoon_results()),
+		results = results,
 		entry_maker = function(entry)
 			-- TODO: pass line into smart icon function?
 			local displayer = entry_display.create({
