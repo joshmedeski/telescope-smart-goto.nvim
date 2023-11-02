@@ -32,15 +32,13 @@ local function get_harpoon_results()
 	return harpoon_entries
 end
 
-local filter = vim.tbl_filter
-
----@return SmartGoToEntry[]
+---@return SmartGoToEntry[]|nil
 local function get_buffer_results(opts)
 	local bufnrs = vim.api.nvim_list_bufs()
-
 	if not next(bufnrs) then
 		return
 	end
+
 	if opts.sort_mru then
 		table.sort(bufnrs, function(a, b)
 			return vim.fn.getbufinfo(a)[1].lastused > vim.fn.getbufinfo(b)[1].lastused
@@ -48,39 +46,34 @@ local function get_buffer_results(opts)
 	end
 
 	local buffers = {}
-	local default_selection_idx = 1
-	for _, bufnr in ipairs(bufnrs) do
-		local flag = bufnr == vim.fn.bufnr("") and "%" or (bufnr == vim.fn.bufnr("#") and "#" or " ")
 
-		if opts.sort_lastused and not opts.ignore_current_buffer and flag == "#" then
-			default_selection_idx = 2
+	for _, bufnr in ipairs(bufnrs) do
+		if vim.api.nvim_buf_is_loaded(bufnr) == false then
+			goto continue
 		end
 
 		local buffer_info = vim.fn.getbufinfo(bufnr)[1]
 
-		local buffer_entry = {
+		if vim.fn.filereadable(buffer_info.name) == 0 then
+			goto continue
+		end
+
+		table.insert(buffers, {
 			type = "buffer",
 			filename = buffer_info.name,
 			row = buffer_info.lnum,
 			col = 0,
 			index = bufnr,
-		}
+		})
 
-		if buffer_entry.filename and buffer_entry.filename ~= "" then
-			table.insert(buffers, buffer_entry)
-		end
-		-- 	local idx = ((buffers[1] ~= nil and buffers[1].flag == "%") and 2 or 1)
-		-- if opts.sort_lastused and (flag == "#" or flag == "%") then
-		-- 	table.insert(buffers, idx, buffer_entry)
-		-- else
-		-- table.insert(buffers, buffer_entry)
-		-- end
+		::continue::
 	end
 
-	if not opts.bufnr_width then
-		local max_bufnr = math.max(unpack(bufnrs))
-		opts.bufnr_width = #tostring(max_bufnr)
-	end
+	-- TODO: is this causing the bug?????? 🐛🖕
+	-- if not opts.bufnr_width then
+	-- 	local max_bufnr = math.max(unpack(bufnrs))
+	-- 	opts.bufnr_width = #tostring(max_bufnr)
+	-- end
 
 	return buffers
 end
@@ -142,7 +135,7 @@ local function smart_goto_finder(opts)
 	})
 end
 
-return function(opts)
+local function smart_goto_picker(opts)
 	opts = opts or {}
 	opts.entry_maker = opts.entry_maker or make_entry.gen_from_file(opts)
 
@@ -158,3 +151,9 @@ return function(opts)
 		})
 		:find()
 end
+
+-- NOTE: uncomment this out for debugging
+-- Run `source %` in nvim to reload this file and automatically run the picker
+-- smart_goto_picker()
+
+return smart_goto_picker
