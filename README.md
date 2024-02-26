@@ -1,5 +1,7 @@
 # telescope-smart-goto.nvim
 
+**Update:** I'm currently not working on this project. I've found [prochri/telescope-all-recent.nvim](https://github.com/prochri/telescope-all-recent.nvim) and [smart-open.nvim](https://github.com/danielfalk/smart-open.nvim) make for a great combination for getting to files efficiently.
+
 A smart goto Telescope extension
 
 **ALPHA WARNING:** This is alpha software right now. There are no tests and it is not ready for daily use. Please feel free to try it out and report any issues you find. I also recommend watching releases for updates.
